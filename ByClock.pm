@@ -6,7 +6,7 @@ use Carp;
 
 use vars qw($VERSION);
 
-$VERSION=0.91;
+$VERSION='1.00';
 
 ########################################################
 sub new {
@@ -42,20 +42,17 @@ foreach ($self->_check_params(@_)) {
 ########################################################
 sub get_control_on_second {
 my $self=shift;
-my ($tm,$until,$listref,@control);
+my($tm,$until);
 
-if(@_) {
-   $listref=\@_;
-   }
-else {
-   $listref=\@$self;
-   }
-
-@control=$self->_check_params(@$listref);
 $tm=localtime;
 
-$until=$self->_find_next($tm->sec,@control);
-return $until unless defined($until);
+if(@_) {
+   $until=$self->_find_next($tm->sec,$self->_check_params(@_));
+   }
+else {
+   $until=$self->_find_next($tm->sec,@$self);
+   }
+return undef unless defined($until);
 
 if($until>$tm->sec) {
    sleep($until-$tm->sec);
@@ -73,35 +70,36 @@ $until;
 ########################################################
 sub get_control_on_minute {
 my $self=shift;
-my ($tm,$until,$until_sec,$listref,@control);
+my($tm,$until,$until_sec);
 
+$tm=localtime;
 if(@_) {
-   $listref=\@_;
+   $until=$self->_find_next($tm->min,$self->_check_params(@_));
    }
 else {
-   $listref=\@$self;
+   $until=$self->_find_next($tm->min,@$self);
+   }
+return undef unless defined($until);
+
+# Syncronize on top of a minute.
+if($tm->sec) {
+   $until_sec=$self->get_control_on_second(0);
    }
 
+# Which minute?
 $tm=localtime;
 
-# Syncronize on top of the minute.
-if($tm->sec){$until_sec=$self->get_control_on_second(0);}
-
-@control=$self->_check_params(@$listref);
-
-$until=$self->_find_next($tm->min,@control);
-return $until unless defined($until);
-
-$tm=localtime;
+# Wait until...
 if($until>$tm->min) {
    sleep(($until-$tm->min)*60);
    }
-elsif($until<$tm->sec) {
+elsif($until<$tm->min) {
    sleep(($until+60-$tm->min)*60);
    }
 else {
+   # On the minute.
    return $until if(defined($until_sec)); # We have slept for less than a minute.
-   sleep(60*60);                          # Wait for an hour.
+   sleep(3600);                           # Wait for a full hour.
    }
 
 $until;
@@ -165,7 +163,7 @@ else {
 $next;
 }
 
-1;
+'Ymer';
 
 __END__
 
@@ -178,14 +176,14 @@ Schedule::ByClock - Give back the control to the caller at given times.
    use Schedule::ByClock;
 
    # Constructor
-   $th = Schedule::ByClock->new([time [,time [,...]]);
+   $th = Schedule::ByClock->new([time [,time [,...]]]);
 
    # Methods
-   @times = $th->set_control_list([time [,time [,...]]);
+   @times = $th->set_control_list([time [,time [,...]]]);
    @times = $th->get_control_list();
 
-   $second = $th->get_control_on_second([second [,second [,...]]);
-   $minute = $th->get_control_on_minute([minute [,minute [,...]]);
+   $second = $th->get_control_on_second([second [,second [,...]]]);
+   $minute = $th->get_control_on_minute([minute [,minute [,...]]]);
 
    $version = $th->get_version();
 
@@ -301,10 +299,12 @@ $rc = $th->get_control_on_second(); # This will return at 09:10:55, one minute l
 
 =over 4
 
-=item $th = Schedule::ByClock->new([time [,time [...]])
+=item $th = Schedule::ByClock->new([time [,time [...]]])
 
 Constructs a new ByClock object with an optional list of 'times'
 for pre-programmed returns.
+
+The 'time' values can be in arbitrary order.
 
 Any 'time' that is not within the range 0 - 59 will be ignored
 and a warning (carp) will be written to the terminal.
@@ -315,11 +315,14 @@ and a warning (carp) will be written to the terminal.
 
 =over 4
 
-=item @times = $th->set_control_list([time [,time [,...]]);
+=item @times = $th->set_control_list([time [,time [,...]]]);
 
 Store a list of 'times' in the ByClock object to be used in future
 calls to get_control_on_second() and/or get_control_on_minute(),
 overriding the old list (if any).
+
+The 'time' values can be in arbitrary order.
+
 Any 'time' that is not within the range 0 - 59 will be ignored
 and a warning (carp) will be written to the terminal.
 If no 'times' are given (no parameters), then the internally
@@ -361,7 +364,7 @@ If the internal list of times is empty the call will immediately return undef.
 
 =over 4
 
-=item $second = $th->get_control_on_second(second [,second [,...]);
+=item $second = $th->get_control_on_second([second [,second [,...]]]);
 
 Sleep and return control to the caller at the chronologically first second
 in the provided list of 'seconds'. This call will ignore the internally
@@ -372,7 +375,7 @@ Returns the second that corresponds to the return.
 
 =over 4
 
-=item $minute = $th->get_control_on_minute(minute [,minute [,...]);
+=item $minute = $th->get_control_on_minute([minute [,minute [,...]]]);
 
 Sleep and return control to the caller at the chronologically first minute
 in the provided list of 'minutes'. This call will ignore the internally
@@ -389,6 +392,20 @@ Returns the current version of Schedule::ByClock.
 
 =back
 
+=over 4
+
+=item Tip:
+
+It is slightly more efficient to initially load the list of 'time' values,
+either in the constructor or in a call to $th->set_control_list(),
+since this will force Schedule::ByClock to validate the 'time' values
+only once.
+
+Whenever a call to $th->get_control_on_second() or $th->get_control_on_minute()
+is done with a parameter list, all values in the list will have to be validated.
+
+=back
+
 =head1 AUTHOR
 
 Gustav Schaffter <gschaffter@cyberjunkie.com>
@@ -397,7 +414,7 @@ http://www.schaffter.com
 
 =head1 COPYRIGHT
 
-Copyright (c) 1999 and 2000, Gustav Schaffter. All rights reserved.
+Copyright (c) 1999, 2000 and 2001, Gustav Schaffter. All rights reserved.
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 

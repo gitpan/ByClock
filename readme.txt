@@ -6,14 +6,14 @@ SYNOPSIS
        use Schedule::ByClock;
 
        # Constructor
-       $th = Schedule::ByClock->new([time [,time [,...]]);
+       $th = Schedule::ByClock->new([time [,time [,...]]]);
 
        # Methods
-       @times = $th->set_control_list([time [,time [,...]]);
+       @times = $th->set_control_list([time [,time [,...]]]);
        @times = $th->get_control_list();
 
-       $second = $th->get_control_on_second([second [,second [,...]]);
-       $minute = $th->get_control_on_minute([minute [,minute [,...]]);
+       $second = $th->get_control_on_second([second [,second [,...]]]);
+       $minute = $th->get_control_on_minute([minute [,minute [,...]]]);
 
        $version = $th->get_version();
 
@@ -102,19 +102,24 @@ EXAMPLES
         09:10:55, one minute later.
 
 CONSTRUCTOR
-    $th = Schedule::ByClock->new([time [,time [...]])
+    $th = Schedule::ByClock->new([time [,time [...]]])
         Constructs a new ByClock object with an optional list of
         'times' for pre-programmed returns.
+
+        The 'time' values can be in arbitrary order.
 
         Any 'time' that is not within the range 0 - 59 will be
         ignored and a warning (carp) will be written to the
         terminal.
 
 METHODS
-    @times = $th->set_control_list([time [,time [,...]]);
+    @times = $th->set_control_list([time [,time [,...]]]);
         Store a list of 'times' in the ByClock object to be used in
         future calls to get_control_on_second() and/or
         get_control_on_minute(), overriding the old list (if any).
+
+        The 'time' values can be in arbitrary order.
+
         Any 'time' that is not within the range 0 - 59 will be
         ignored and a warning (carp) will be written to the
         terminal. If no 'times' are given (no parameters), then the
@@ -140,14 +145,14 @@ METHODS
         the return. If the internal list of times is empty the call
         will immediately return undef.
 
-    $second = $th->get_control_on_second(second [,second [,...]);
+    $second = $th->get_control_on_second([second [,second [,...]]]);
         Sleep and return control to the caller at the
         chronologically first second in the provided list of
         'seconds'. This call will ignore the internally stored list
         of times (if any). Returns the second that corresponds to
         the return.
 
-    $minute = $th->get_control_on_minute(minute [,minute [,...]);
+    $minute = $th->get_control_on_minute([minute [,minute [,...]]]);
         Sleep and return control to the caller at the
         chronologically first minute in the provided list of
         'minutes'. This call will ignore the internally stored list
@@ -157,12 +162,23 @@ METHODS
     $version = $th->get_version();
         Returns the current version of Schedule::ByClock.
 
+    Tip:
+        It is slightly more efficient to initially load the list of
+        'time' values, either in the constructor or in a call to
+        $th->set_control_list(), since this will force
+        Schedule::ByClock to validate the 'time' values only once.
+
+        Whenever a call to $th->get_control_on_second() or $th-
+        >get_control_on_minute() is done with a parameter list, all
+        values in the list will have to be validated.
+
 AUTHOR
     Gustav Schaffter <gschaffter@cyberjunkie.com>
 
     http://www.schaffter.com
 
 COPYRIGHT
-    Copyright (c) 1999 and 2000, Gustav Schaffter. All rights
+    Copyright (c) 1999, 2000 and 2001, Gustav Schaffter. All rights
     reserved. This program is free software; you can redistribute it
     and/or modify it under the same terms as Perl itself.
+

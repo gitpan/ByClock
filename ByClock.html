@@ -37,16 +37,16 @@ Schedule::ByClock - Give back the control to the caller at given times.
 </PRE>
 <P>
 <PRE>   # Constructor
-   $th = Schedule::ByClock-&gt;new([time [,time [,...]]);
+   $th = Schedule::ByClock-&gt;new([time [,time [,...]]]);
 </PRE>
 <P>
 <PRE>   # Methods
-   @times = $th-&gt;set_control_list([time [,time [,...]]);
+   @times = $th-&gt;set_control_list([time [,time [,...]]]);
    @times = $th-&gt;get_control_list();
 </PRE>
 <P>
-<PRE>   $second = $th-&gt;get_control_on_second([second [,second [,...]]);
-   $minute = $th-&gt;get_control_on_minute([minute [,minute [,...]]);
+<PRE>   $second = $th-&gt;get_control_on_second([second [,second [,...]]]);
+   $minute = $th-&gt;get_control_on_minute([minute [,minute [,...]]]);
 </PRE>
 <P>
 <PRE>   $version = $th-&gt;get_version();
@@ -178,10 +178,13 @@ At 09:09:55, you call:
 <HR>
 <H1><A NAME="CONSTRUCTOR">CONSTRUCTOR</A></H1>
 <DL>
-<DT><STRONG><A NAME="item__th">$th = Schedule::ByClock-&gt;new([time [,time [...]])</A></STRONG><DD>
+<DT><STRONG><A NAME="item__th">$th = Schedule::ByClock-&gt;new([time [,time [...]]])</A></STRONG><DD>
 <P>
 Constructs a new ByClock object with an optional list of 'times' for
 pre-programmed returns.
+
+<P>
+The 'time' values can be in arbitrary order.
 
 <P>
 Any 'time' that is not within the range 0 - 59 will be ignored and a
@@ -192,13 +195,18 @@ warning (carp) will be written to the terminal.
 <HR>
 <H1><A NAME="METHODS">METHODS</A></H1>
 <DL>
-<DT><STRONG><A NAME="item__times">@times = $th-&gt;set_control_list([time [,time [,...]]);</A></STRONG><DD>
+<DT><STRONG><A NAME="item__times">@times = $th-&gt;set_control_list([time [,time [,...]]]);</A></STRONG><DD>
 <P>
 Store a list of 'times' in the ByClock object to be used in future calls to
 <CODE>get_control_on_second()</CODE> and/or
-<CODE>get_control_on_minute(),</CODE> overriding the old list (if any). Any
-'time' that is not within the range 0 - 59 will be ignored and a warning
-(carp) will be written to the terminal. If no 'times' are given (no
+<CODE>get_control_on_minute(),</CODE> overriding the old list (if any).
+
+<P>
+The 'time' values can be in arbitrary order.
+
+<P>
+Any 'time' that is not within the range 0 - 59 will be ignored and a
+warning (carp) will be written to the terminal. If no 'times' are given (no
 parameters), then the internally stored list of 'times' will be cleared.
 Returns the newly stored list of 'times'.
 
@@ -229,7 +237,7 @@ immediately return undef.
 
 </DL>
 <DL>
-<DT><STRONG>$second = $th-&gt;get_control_on_second(second [,second [,...]);</STRONG><DD>
+<DT><STRONG>$second = $th-&gt;get_control_on_second([second [,second [,...]]]);</STRONG><DD>
 <P>
 Sleep and return control to the caller at the chronologically first second
 in the provided list of 'seconds'. This call will ignore the internally
@@ -238,7 +246,7 @@ return.
 
 </DL>
 <DL>
-<DT><STRONG>$minute = $th-&gt;get_control_on_minute(minute [,minute [,...]);</STRONG><DD>
+<DT><STRONG>$minute = $th-&gt;get_control_on_minute([minute [,minute [,...]]]);</STRONG><DD>
 <P>
 Sleep and return control to the caller at the chronologically first minute
 in the provided list of 'minutes'. This call will ignore the internally
@@ -250,6 +258,19 @@ return.
 <DT><STRONG><A NAME="item__version">$version = $th-&gt;get_version();</A></STRONG><DD>
 <P>
 Returns the current version of Schedule::ByClock.
+
+</DL>
+<DL>
+<DT><STRONG><A NAME="item_Tip">Tip:</A></STRONG><DD>
+<P>
+It is slightly more efficient to initially load the list of 'time' values,
+either in the constructor or in a call to $th-&gt;set_control_list(), since
+this will force Schedule::ByClock to validate the 'time' values only once.
+
+<P>
+Whenever a call to $th-&gt;get_control_on_second() or
+$th-&gt;get_control_on_minute() is done with a parameter list, all values
+in the list will have to be validated.
 
 </DL>
 <P>
@@ -266,9 +287,9 @@ HREF="mailto:gschaffter@cyberjunkie.com">gschaffter@cyberjunkie.com</A>&gt;
 <HR>
 <H1><A NAME="COPYRIGHT">COPYRIGHT</A></H1>
 <P>
-Copyright (c) 1999 and 2000, Gustav Schaffter. All rights reserved. This
-program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+Copyright (c) 1999, 2000 and 2001, Gustav Schaffter. All rights reserved.
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
 
 </BODY>
 
