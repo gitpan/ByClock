@@ -1,0 +1,243 @@
+<HTML>
+<HEAD>
+<TITLE>Schedule::ByClock - Give back the control to the caller at given
+times.</TITLE>
+<LINK REV="made" HREF="mailto:root@porky.devel.redhat.com">
+</HEAD>
+
+<BODY>
+
+<!-- INDEX BEGIN -->
+
+<UL>
+
+	<LI><A HREF="#NAME">NAME</A>
+	<LI><A HREF="#SYNOPSIS">SYNOPSIS</A>
+	<LI><A HREF="#DEPENDENCIES">DEPENDENCIES</A>
+	<LI><A HREF="#DESCRIPTION">DESCRIPTION</A>
+	<LI><A HREF="#USAGE">USAGE</A>
+	<LI><A HREF="#EXAMPLES">EXAMPLES</A>
+	<LI><A HREF="#CONSTRUCTOR">CONSTRUCTOR</A>
+	<LI><A HREF="#METHODS">METHODS</A>
+	<LI><A HREF="#AUTHOR">AUTHOR</A>
+	<LI><A HREF="#COPYRIGHT">COPYRIGHT</A>
+</UL>
+<!-- INDEX END -->
+
+<HR>
+<P>
+<H1><A NAME="NAME">NAME</A></H1>
+<P>
+Schedule::ByClock - Give back the control to the caller at given times.
+
+<P>
+<HR>
+<H1><A NAME="SYNOPSIS">SYNOPSIS</A></H1>
+<P>
+<PRE>   use Schedule::ByClock;
+</PRE>
+<P>
+<PRE>   # Constructor
+   $th = Schedule::ByClock-&gt;new([second [,second [,...]]);
+</PRE>
+<P>
+<PRE>   # Methods
+   @seconds = $th-&gt;set_control_list([second [,second [,...]]);
+   @seconds = $th-&gt;get_control_list();
+</PRE>
+<P>
+<PRE>   $second = $th-&gt;get_control_on_second([second [,second [,...]]);
+</PRE>
+<P>
+<PRE>   $version = $th-&gt;get_version();
+</PRE>
+<P>
+<HR>
+<H1><A NAME="DEPENDENCIES">DEPENDENCIES</A></H1>
+<P>
+Schedule::ByClock makes use of the Time::localtime package.
+
+<P>
+<HR>
+<H1><A NAME="DESCRIPTION">DESCRIPTION</A></H1>
+<P>
+This module implements an 'intelligent' (?) layer over
+<CODE>sleep().</CODE> Call the module when you want to sleep to a given
+second in the minute without having to calculate how long to wait.
+
+<P>
+Use with multiple 'second' values to sleep until the chronologically first
+'second' in the list.
+
+<P>
+Note that all times used in Schedule::ByClock are calculated from the local
+time in the computer where Schedule::ByClock is executed.
+
+<P>
+<HR>
+<H1><A NAME="USAGE">USAGE</A></H1>
+<P>
+Assume that you want to do something repeatedly every minute, when the
+seconds show for instance 34.
+
+<P>
+Assume that you want to do something (maybe just once) the next time the
+seconds in the computer shows 23. Assume that 'now' is 18. You would need
+to use sleep and to calculate how many seconds there are from 'now' till
+23. Easy, 23 - 18 = 5. <CODE>sleep(5);</CODE> Then, assume that 'now' is
+28. I.e. 23 - 28 = 55. (Huh?)
+
+<P>
+Assume that you want to do something repeatedly, when the seconds show
+either 12 or 45 or 55, whichever comes first compared to 'now'. Assume that
+'now' is 56. You would have to find out if it's 12, 45 or 55 that comes
+'after' 56. Then you would have to calculate 12 - 56 = 16. (Right?)
+
+<P>
+You should have got the picture by now. (Or I have failed. :-)
+
+<P>
+<HR>
+<H1><A NAME="EXAMPLES">EXAMPLES</A></H1>
+<DL>
+<DT><STRONG><A NAME="item_Constructor">Constructor</A></STRONG><DD>
+<P>
+All examples below use this constructor.
+
+<P>
+<CODE>$th</CODE> = Schedule::ByClock-&gt;new(12,8,55); # Constructor with
+three 'seconds' values.
+
+</DL>
+<DL>
+<DT><STRONG><A NAME="item_Example">Example 1</A></STRONG><DD>
+<P>
+At 09:09:24, you call:
+
+<P>
+<CODE>$rc</CODE> = $th-&gt;get_control_on_second(); # This will return at
+09:09:55.
+
+</DL>
+<DL>
+<DT><STRONG>Example 2</STRONG><DD>
+<P>
+<CODE>$rc</CODE> = $th-&gt;set_control_list(23);
+
+<P>
+At 09:09:24, you call:
+
+<P>
+<CODE>$rc</CODE> = $th-&gt;get_control_on_second(); # This will return at
+09:10:23.
+
+</DL>
+<DL>
+<DT><STRONG>Example 3</STRONG><DD>
+<P>
+<CODE>$rc</CODE> = $th-&gt;set_control_list(); # Note! Empty list.
+
+<P>
+At 09:09:24, you call:
+
+<P>
+<CODE>$rc</CODE> = $th-&gt;get_control_on_second(); # This will return
+immediately (with return value undef).
+
+<P>
+At 09:09:25, you call:
+
+<P>
+<CODE>$rc</CODE> = $th-&gt;get_control_on_second(12); # This will return at
+09:10:12.
+
+</DL>
+<DL>
+<DT><STRONG>Example 4</STRONG><DD>
+<P>
+At 09:09:55, you call:
+
+<P>
+<CODE>$rc</CODE> = $th-&gt;get_control_on_second(); # This will return at
+09:10:55, one minute later.
+
+</DL>
+<P>
+<HR>
+<H1><A NAME="CONSTRUCTOR">CONSTRUCTOR</A></H1>
+<DL>
+<DT><STRONG><A NAME="item__th">$th = Schedule::ByClock-&gt;new([second [,second [...]])</A></STRONG><DD>
+<P>
+Constructs a new ByClock object with an optional list of 'seconds' for
+pre-programmed returns.
+
+<P>
+Any 'second' that is not within the range 0 - 59 will be ignored and a
+warning (carp) will be written to the terminal.
+
+</DL>
+<P>
+<HR>
+<H1><A NAME="METHODS">METHODS</A></H1>
+<DL>
+<DT><STRONG><A NAME="item__seconds">@seconds = $th-&gt;set_control_list([second [,second [,...]]);</A></STRONG><DD>
+<P>
+Store a list of 'seconds' in the ByClock object to be used in future calls
+to <CODE>get_control_on_second(),</CODE> overriding the old list (if any).
+Any 'second' that is not within the range 0 - 59 will be ignored and a
+warning (carp) will be written to the terminal. If no 'seconds' are given
+(no parameters), then the internally stored list of 'seconds' will be
+cleared. Returns the newly stored list of 'seconds'.
+
+</DL>
+<DL>
+<DT><STRONG>@seconds = $th-&gt;get_control_list();</STRONG><DD>
+<P>
+Returns a list of 'seconds' currently stored in the ByClock object.
+
+</DL>
+<DL>
+<DT><STRONG><A NAME="item__second">$second = $th-&gt;get_control_on_second();</A></STRONG><DD>
+<P>
+Sleep and return control to the caller at the chronologically first second
+in the pre-programmed list of 'seconds'. Returns the second that
+corresponds to the return. If the internal list of seconds is empty the
+call will immediately return undef.
+
+</DL>
+<DL>
+<DT><STRONG>$second = $th-&gt;get_control_on_second(second [,second [,...]);</STRONG><DD>
+<P>
+Sleep and return control to the caller at the chronologically first second
+in the provided list of 'seconds'. This call will ignore the internally
+stored list of seconds (if any). Returns the second that corresponds to the
+return.
+
+</DL>
+<DL>
+<DT><STRONG><A NAME="item__version">$version = $th-&gt;get_version();</A></STRONG><DD>
+<P>
+Returns the current version of Schedule::ByClock.
+
+</DL>
+<P>
+<HR>
+<H1><A NAME="AUTHOR">AUTHOR</A></H1>
+<P>
+Gustav Schaffter &lt;<A
+HREF="mailto:gschaffter@cyberjunkie.com">gschaffter@cyberjunkie.com</A>&gt;
+
+<P>
+<A HREF="http://www.schaffter.com">http://www.schaffter.com</A>
+
+<P>
+<HR>
+<H1><A NAME="COPYRIGHT">COPYRIGHT</A></H1>
+<P>
+Copyright (c) 1999 Gustav Schaffter. All rights reserved. This program is
+free software; you can redistribute it and/or modify it under the same
+terms as Perl itself.
+
+</BODY>
+
+</HTML>

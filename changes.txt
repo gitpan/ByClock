@@ -1,0 +1,5 @@
+Revision history for Perl extension Schedule::ByClock.
+
+
+Date        Version  Changes
+08-Dec-1999 V0.90    First public release.
