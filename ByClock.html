@@ -1,7 +1,6 @@
 <HTML>
 <HEAD>
-<TITLE>Schedule::ByClock - Give back the control to the caller at given
-times.</TITLE>
+<TITLE>Schedule::ByClock - Give back the control to the caller at given times.</TITLE>
 <LINK REV="made" HREF="mailto:root@porky.devel.redhat.com">
 </HEAD>
 
@@ -38,15 +37,16 @@ Schedule::ByClock - Give back the control to the caller at given times.
 </PRE>
 <P>
 <PRE>   # Constructor
-   $th = Schedule::ByClock-&gt;new([second [,second [,...]]);
+   $th = Schedule::ByClock-&gt;new([time [,time [,...]]);
 </PRE>
 <P>
 <PRE>   # Methods
-   @seconds = $th-&gt;set_control_list([second [,second [,...]]);
-   @seconds = $th-&gt;get_control_list();
+   @times = $th-&gt;set_control_list([time [,time [,...]]);
+   @times = $th-&gt;get_control_list();
 </PRE>
 <P>
 <PRE>   $second = $th-&gt;get_control_on_second([second [,second [,...]]);
+   $minute = $th-&gt;get_control_on_minute([minute [,minute [,...]]);
 </PRE>
 <P>
 <PRE>   $version = $th-&gt;get_version();
@@ -55,7 +55,7 @@ Schedule::ByClock - Give back the control to the caller at given times.
 <HR>
 <H1><A NAME="DEPENDENCIES">DEPENDENCIES</A></H1>
 <P>
-Schedule::ByClock makes use of the Time::localtime package.
+Schedule::ByClock use the Time::localtime module.
 
 <P>
 <HR>
@@ -63,11 +63,12 @@ Schedule::ByClock makes use of the Time::localtime package.
 <P>
 This module implements an 'intelligent' (?) layer over
 <CODE>sleep().</CODE> Call the module when you want to sleep to a given
-second in the minute without having to calculate how long to wait.
+second in the minute, or to a given minute in the hour, without having to
+calculate how long to wait.
 
 <P>
-Use with multiple 'second' values to sleep until the chronologically first
-'second' in the list.
+Use with multiple 'time' values to sleep until the chronologically first
+'time' in the list.
 
 <P>
 Note that all times used in Schedule::ByClock are calculated from the local
@@ -94,6 +95,10 @@ either 12 or 45 or 55, whichever comes first compared to 'now'. Assume that
 'after' 56. Then you would have to calculate 12 - 56 = 16. (Right?)
 
 <P>
+Assume that you don't want to wait for seconds, but for minutes instead.
+Sleep until the minutes in the hour are either 23, 55 or 59.
+
+<P>
 You should have got the picture by now. (Or I have failed. :-)
 
 <P>
@@ -106,7 +111,7 @@ All examples below use this constructor.
 
 <P>
 <CODE>$th</CODE> = Schedule::ByClock-&gt;new(12,8,55); # Constructor with
-three 'seconds' values.
+three 'time' values.
 
 </DL>
 <DL>
@@ -151,6 +156,13 @@ At 09:09:25, you call:
 <CODE>$rc</CODE> = $th-&gt;get_control_on_second(12); # This will return at
 09:10:12.
 
+<P>
+At 09:09:25, you call:
+
+<P>
+<CODE>$rc</CODE> = $th-&gt;get_control_on_minute(12); # This will return at
+09:12:00. &lt;= Note the minutes.
+
 </DL>
 <DL>
 <DT><STRONG>Example 4</STRONG><DD>
@@ -166,13 +178,13 @@ At 09:09:55, you call:
 <HR>
 <H1><A NAME="CONSTRUCTOR">CONSTRUCTOR</A></H1>
 <DL>
-<DT><STRONG><A NAME="item__th">$th = Schedule::ByClock-&gt;new([second [,second [...]])</A></STRONG><DD>
+<DT><STRONG><A NAME="item__th">$th = Schedule::ByClock-&gt;new([time [,time [...]])</A></STRONG><DD>
 <P>
-Constructs a new ByClock object with an optional list of 'seconds' for
+Constructs a new ByClock object with an optional list of 'times' for
 pre-programmed returns.
 
 <P>
-Any 'second' that is not within the range 0 - 59 will be ignored and a
+Any 'time' that is not within the range 0 - 59 will be ignored and a
 warning (carp) will be written to the terminal.
 
 </DL>
@@ -180,29 +192,40 @@ warning (carp) will be written to the terminal.
 <HR>
 <H1><A NAME="METHODS">METHODS</A></H1>
 <DL>
-<DT><STRONG><A NAME="item__seconds">@seconds = $th-&gt;set_control_list([second [,second [,...]]);</A></STRONG><DD>
+<DT><STRONG><A NAME="item__times">@times = $th-&gt;set_control_list([time [,time [,...]]);</A></STRONG><DD>
 <P>
-Store a list of 'seconds' in the ByClock object to be used in future calls
-to <CODE>get_control_on_second(),</CODE> overriding the old list (if any).
-Any 'second' that is not within the range 0 - 59 will be ignored and a
-warning (carp) will be written to the terminal. If no 'seconds' are given
-(no parameters), then the internally stored list of 'seconds' will be
-cleared. Returns the newly stored list of 'seconds'.
+Store a list of 'times' in the ByClock object to be used in future calls to
+<CODE>get_control_on_second()</CODE> and/or
+<CODE>get_control_on_minute(),</CODE> overriding the old list (if any). Any
+'time' that is not within the range 0 - 59 will be ignored and a warning
+(carp) will be written to the terminal. If no 'times' are given (no
+parameters), then the internally stored list of 'times' will be cleared.
+Returns the newly stored list of 'times'.
 
 </DL>
 <DL>
-<DT><STRONG>@seconds = $th-&gt;get_control_list();</STRONG><DD>
+<DT><STRONG>@times = $th-&gt;get_control_list();</STRONG><DD>
 <P>
-Returns a list of 'seconds' currently stored in the ByClock object.
+Returns a list of 'times' currently stored in the ByClock object.
 
 </DL>
 <DL>
 <DT><STRONG><A NAME="item__second">$second = $th-&gt;get_control_on_second();</A></STRONG><DD>
 <P>
 Sleep and return control to the caller at the chronologically first second
-in the pre-programmed list of 'seconds'. Returns the second that
-corresponds to the return. If the internal list of seconds is empty the
-call will immediately return undef.
+in the pre-programmed list of 'times'. Returns the second that corresponds
+to the return. If the internal list of seconds is empty the call will
+immediately return undef.
+
+</DL>
+<DL>
+<DT><STRONG><A NAME="item__minute">$minute = $th-&gt;get_control_on_minute();</A></STRONG><DD>
+<P>
+Sleep and return control to the caller at the chronologically first minute
+in the pre-programmed list of 'times'. The call will return in the first
+second ('00') of the requested minute. Returns the minute that corresponds
+to the return. If the internal list of times is empty the call will
+immediately return undef.
 
 </DL>
 <DL>
@@ -210,7 +233,16 @@ call will immediately return undef.
 <P>
 Sleep and return control to the caller at the chronologically first second
 in the provided list of 'seconds'. This call will ignore the internally
-stored list of seconds (if any). Returns the second that corresponds to the
+stored list of times (if any). Returns the second that corresponds to the
+return.
+
+</DL>
+<DL>
+<DT><STRONG>$minute = $th-&gt;get_control_on_minute(minute [,minute [,...]);</STRONG><DD>
+<P>
+Sleep and return control to the caller at the chronologically first minute
+in the provided list of 'minutes'. This call will ignore the internally
+stored list of times (if any). Returns the minute that corresponds to the
 return.
 
 </DL>
@@ -234,9 +266,9 @@ HREF="mailto:gschaffter@cyberjunkie.com">gschaffter@cyberjunkie.com</A>&gt;
 <HR>
 <H1><A NAME="COPYRIGHT">COPYRIGHT</A></H1>
 <P>
-Copyright (c) 1999 Gustav Schaffter. All rights reserved. This program is
-free software; you can redistribute it and/or modify it under the same
-terms as Perl itself.
+Copyright (c) 1999 and 2000, Gustav Schaffter. All rights reserved. This
+program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
 
 </BODY>
 

@@ -3,21 +3,3 @@ To do with Schedule::ByClock
 All future development of ByClock is 'user driven'. I.e. if I
 get requests, I will consider enhancements. Don't hesitate to
 send me e-mail. I will listen to you. :-)
-
-
-+ Today, the ByClock class can return control on given seconds
-  in the minute. I think it would make sense if it could also
-  return control at given minutes vithin the hour.
-  This could easily be implemented. The values stored, or used
-  in an ad hoc call, are the same; 0-59.
-  It would probably not make sense to call ByClock to sleep for
-  about one hour, but if there is a need to wake up at for
-  instance 12, 33 and 57 every hour, then it might make sense.
-  Anyway, I don't have the need for it myself, so if you want
-  it, let me know!
-  
-  I don't think it would make sense to implement a method to
-  wake up on given hour of the day. I don't see why this would
-  be used, but if I get requests for it, I will seriously
-  consider it.
-

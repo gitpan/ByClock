@@ -6,7 +6,7 @@ use Carp;
 
 use vars qw($VERSION);
 
-$VERSION=0.90;
+$VERSION=0.91;
 
 ########################################################
 sub new {
@@ -65,6 +65,43 @@ elsif($until<$tm->sec) {
    }
 else {
    sleep(60);
+   }
+
+$until;
+}
+
+########################################################
+sub get_control_on_minute {
+my $self=shift;
+my ($tm,$until,$until_sec,$listref,@control);
+
+if(@_) {
+   $listref=\@_;
+   }
+else {
+   $listref=\@$self;
+   }
+
+$tm=localtime;
+
+# Syncronize on top of the minute.
+if($tm->sec){$until_sec=$self->get_control_on_second(0);}
+
+@control=$self->_check_params(@$listref);
+
+$until=$self->_find_next($tm->min,@control);
+return $until unless defined($until);
+
+$tm=localtime;
+if($until>$tm->min) {
+   sleep(($until-$tm->min)*60);
+   }
+elsif($until<$tm->sec) {
+   sleep(($until+60-$tm->min)*60);
+   }
+else {
+   return $until if(defined($until_sec)); # We have slept for less than a minute.
+   sleep(60*60);                          # Wait for an hour.
    }
 
 $until;
@@ -134,39 +171,39 @@ __END__
 
 =head1 NAME
 
-Schedule::ByClock - Give back the control to the caller at given
-times.
+Schedule::ByClock - Give back the control to the caller at given times.
 
 =head1 SYNOPSIS
 
    use Schedule::ByClock;
 
    # Constructor
-   $th = Schedule::ByClock->new([second [,second [,...]]);
+   $th = Schedule::ByClock->new([time [,time [,...]]);
 
    # Methods
-   @seconds = $th->set_control_list([second [,second [,...]]);
-   @seconds = $th->get_control_list();
+   @times = $th->set_control_list([time [,time [,...]]);
+   @times = $th->get_control_list();
 
    $second = $th->get_control_on_second([second [,second [,...]]);
+   $minute = $th->get_control_on_minute([minute [,minute [,...]]);
 
    $version = $th->get_version();
 
 =head1 DEPENDENCIES
 
-Schedule::ByClock makes use of the Time::localtime package.
+Schedule::ByClock use the Time::localtime module.
 
 =head1 DESCRIPTION
 
 This module implements an 'intelligent' (?) layer over sleep().
-Call the module when you want to sleep to a given second in the minute
+Call the module when you want to sleep to a given second in the minute,
+or to a given minute in the hour,
 without having to calculate how long to wait.
 
-Use with multiple 'second' values to sleep until the chronologically
-first 'second' in the list.
+Use with multiple 'time' values to sleep until the chronologically
+first 'time' in the list.
 
-Note that all times used in Schedule::ByClock are calculated from the
-local
+Note that all times used in Schedule::ByClock are calculated from the local
 time in the computer where Schedule::ByClock is executed.
 
 =head1 USAGE
@@ -191,6 +228,9 @@ Assume that 'now' is 56.
 You would have to find out if it's 12, 45 or 55 that comes 'after' 56.
 Then you would have to calculate 12 - 56 = 16. (Right?)
 
+Assume that you don't want to wait for seconds, but for minutes instead.
+Sleep until the minutes in the hour are either 23, 55 or 59.
+
 You should have got the picture by now. (Or I have failed. :-)
 
 =head1 EXAMPLES
@@ -201,8 +241,7 @@ You should have got the picture by now. (Or I have failed. :-)
 
 All examples below use this constructor.
 
-$th = Schedule::ByClock->new(12,8,55);       # Constructor with three
-'seconds' values.
+$th = Schedule::ByClock->new(12,8,55);       # Constructor with three 'time' values.
 
 =back
 
@@ -236,12 +275,15 @@ $rc = $th->set_control_list();   # Note! Empty list.
 
 At 09:09:24, you call:
 
-$rc = $th->get_control_on_second(); # This will return immediately
-(with return value undef).
+$rc = $th->get_control_on_second(); # This will return immediately (with return value undef).
 
 At 09:09:25, you call:
 
 $rc = $th->get_control_on_second(12); # This will return at 09:10:12.
+
+At 09:09:25, you call:
+
+$rc = $th->get_control_on_minute(12); # This will return at 09:12:00.  <= Note the minutes.
 
 =back
 
@@ -251,8 +293,7 @@ $rc = $th->get_control_on_second(12); # This will return at 09:10:12.
 
 At 09:09:55, you call:
 
-$rc = $th->get_control_on_second(); # This will return at 09:10:55,
-one minute later.
+$rc = $th->get_control_on_second(); # This will return at 09:10:55, one minute later.
 
 =back
 
@@ -260,12 +301,12 @@ one minute later.
 
 =over 4
 
-=item $th = Schedule::ByClock->new([second [,second [...]])
+=item $th = Schedule::ByClock->new([time [,time [...]])
 
-Constructs a new ByClock object with an optional list of 'seconds'
+Constructs a new ByClock object with an optional list of 'times'
 for pre-programmed returns.
 
-Any 'second' that is not within the range 0 - 59 will be ignored
+Any 'time' that is not within the range 0 - 59 will be ignored
 and a warning (carp) will be written to the terminal.
 
 =back
@@ -274,23 +315,24 @@ and a warning (carp) will be written to the terminal.
 
 =over 4
 
-=item @seconds = $th->set_control_list([second [,second [,...]]);
+=item @times = $th->set_control_list([time [,time [,...]]);
 
-Store a list of 'seconds' in the ByClock object to be used in future
-calls to get_control_on_second(), overriding the old list (if any).
-Any 'second' that is not within the range 0 - 59 will be ignored
+Store a list of 'times' in the ByClock object to be used in future
+calls to get_control_on_second() and/or get_control_on_minute(),
+overriding the old list (if any).
+Any 'time' that is not within the range 0 - 59 will be ignored
 and a warning (carp) will be written to the terminal.
-If no 'seconds' are given (no parameters), then the internally
-stored list of 'seconds' will be cleared.
-Returns the newly stored list of 'seconds'.
+If no 'times' are given (no parameters), then the internally
+stored list of 'times' will be cleared.
+Returns the newly stored list of 'times'.
 
 =back
 
 =over 4
 
-=item @seconds = $th->get_control_list();
+=item @times = $th->get_control_list();
 
-Returns a list of 'seconds' currently stored in the ByClock object.
+Returns a list of 'times' currently stored in the ByClock object.
 
 =back
 
@@ -298,12 +340,22 @@ Returns a list of 'seconds' currently stored in the ByClock object.
 
 =item $second = $th->get_control_on_second();
 
-Sleep and return control to the caller at the chronologically first
-second
-in the pre-programmed list of 'seconds'.
+Sleep and return control to the caller at the chronologically first second
+in the pre-programmed list of 'times'.
 Returns the second that corresponds to the return.
-If the internal list of seconds is empty the call will immediately
-return undef.
+If the internal list of seconds is empty the call will immediately return undef.
+
+=back
+
+=over 4
+
+=item $minute = $th->get_control_on_minute();
+
+Sleep and return control to the caller at the chronologically first minute
+in the pre-programmed list of 'times'.
+The call will return in the first second ('00') of the requested minute.
+Returns the minute that corresponds to the return.
+If the internal list of times is empty the call will immediately return undef.
 
 =back
 
@@ -311,12 +363,21 @@ return undef.
 
 =item $second = $th->get_control_on_second(second [,second [,...]);
 
-Sleep and return control to the caller at the chronologically first
-second
-in the provided list of 'seconds'. This call will ignore the
-internally
-stored list of seconds (if any).
+Sleep and return control to the caller at the chronologically first second
+in the provided list of 'seconds'. This call will ignore the internally
+stored list of times (if any).
 Returns the second that corresponds to the return.
+
+=back
+
+=over 4
+
+=item $minute = $th->get_control_on_minute(minute [,minute [,...]);
+
+Sleep and return control to the caller at the chronologically first minute
+in the provided list of 'minutes'. This call will ignore the internally
+stored list of times (if any).
+Returns the minute that corresponds to the return.
 
 =back
 
@@ -336,7 +397,7 @@ http://www.schaffter.com
 
 =head1 COPYRIGHT
 
-Copyright (c) 1999 Gustav Schaffter. All rights reserved.
+Copyright (c) 1999 and 2000, Gustav Schaffter. All rights reserved.
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
