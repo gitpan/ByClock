@@ -1,12 +1,12 @@
 package Schedule::ByClock;
-
 use strict;
+
 use Time::localtime;
 use Carp;
 
 use vars qw($VERSION);
 
-$VERSION='1.00';
+$VERSION='1.01';
 
 ########################################################
 sub new {
@@ -189,7 +189,7 @@ Schedule::ByClock - Give back the control to the caller at given times.
 
 =head1 DEPENDENCIES
 
-Schedule::ByClock use the Time::localtime module.
+Schedule::ByClock uses the Time::localtime module.
 
 =head1 DESCRIPTION
 
@@ -408,14 +408,15 @@ is done with a parameter list, all values in the list will have to be validated.
 
 =head1 AUTHOR
 
-Gustav Schaffter <gschaffter@cyberjunkie.com>
+Gustav Schaffter <schaffter_cpan@hotmail.com>
 
 http://www.schaffter.com
 
 =head1 COPYRIGHT
 
-Copyright (c) 1999, 2000 and 2001, Gustav Schaffter. All rights reserved.
+Copyright (c) 1999, 2000, 2001 and 2002, Gustav Schaffter. All rights reserved.
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =cut
+

@@ -1,5 +1,0 @@
-To do with Schedule::ByClock
-
-All future development of ByClock is 'user driven'. I.e. if I
-get requests, I will consider enhancements. Don't hesitate to
-send me e-mail. I will listen to you. :-)
